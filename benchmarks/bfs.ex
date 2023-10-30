@@ -113,6 +113,7 @@ exec = Stream.unfold(true, fn
     g_over = GPotion.new_gmatrex(m_over)
     GPotion.spawn(kernel1, grid, threads, [g_starting, g_no_of_edges, g_graph_edges, g_graph_mask, g_updating_graph_mask, g_graph_visited, g_d_cost, no_of_nodes, max_threads_per_block])
     GPotion.spawn(kernel2, grid, threads, [g_graph_mask, g_updating_graph_mask, g_graph_visited, g_over, no_of_nodes, max_threads_per_block])
+    GPotion.synchronize()
     r = GPotion.get_gmatrex(g_over)
     k = k + 1
     b = if r == 0, do: false, else: true
@@ -121,4 +122,11 @@ end)
 
 Stream.run(exec)
 
+get_result_start = System.monotonic_time()
+result = GPotion.get_gmatrex(g_d_cost)
+get_result_end = System.monotonic_time()
+
+File.write("results.txt", g_d_cost)
+
 IO.puts "Copied to GPU: #{System.convert_time_unit(copy_end - copy_start, :native, :millisecond)}"
+IO.puts "Copied result from GPU: #{System.convert_time_unit(get_result_end - get_result_start, :native, :millisecond)}"
