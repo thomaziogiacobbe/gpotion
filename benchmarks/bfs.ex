@@ -44,9 +44,8 @@ no_of_nodes = Enum.at(input, 0)
 num_of_blocks = 1
 num_of_threads_per_block = no_of_nodes
 
-if no_of_nodes > max_threads_per_block do
-  num_of_blocks = ceil(no_of_nodes/max_threads_per_block)
-  num_of_threads_per_block = max_threads_per_block
+{num_of_blocks, num_of_threads_per_block} = if no_of_nodes > max_threads_per_block do
+  {ceil(no_of_nodes/max_threads_per_block), max_threads_per_block}
 end
 
 nodes = Enum.slice(input, 1, no_of_nodes) |> Enum.chunk_every(2)
@@ -116,7 +115,7 @@ exec = Stream.unfold(true, fn
     GPotion.synchronize()
     r = GPotion.get_gmatrex(g_over)
     k = k + 1
-    b = if r == 0, do: false, else: true
+    b = if r[0] == 0, do: false, else: true
     {true, b}
 end)
 
