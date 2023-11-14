@@ -121,7 +121,7 @@ kernel2 = GPotion.load(&BFS_Kernel2.kernel2/7)
 kernel_exec_start = System.monotonic_time()
 
 iter = Stream.iterate(0, &(&1 + 1))
-  |> Enum.reduce_while(0, fn _i, acc ->
+  |> Enum.reduce_while(1, fn _i, acc ->
     g_over = GPotion.new_gmatrex(m_over)
     GPotion.spawn(kernel1, grid, threads, [g_starting, g_no_of_edges, g_graph_edges, g_graph_mask, g_updating_graph_mask, g_graph_visited, g_d_cost, no_of_nodes, max_threads_per_block])
     GPotion.spawn(kernel2, grid, threads, [g_graph_mask, g_updating_graph_mask, g_graph_visited, g_over, no_of_nodes, max_threads_per_block])
@@ -135,8 +135,6 @@ iter = Stream.iterate(0, &(&1 + 1))
     end
   end)
 
-iter = iter + 1
-
 kernel_exec_end = System.monotonic_time()
 IO.puts "Kernel execution time: #{System.convert_time_unit(kernel_exec_end - kernel_exec_start, :native, :millisecond)}ms"
 
@@ -148,7 +146,7 @@ IO.puts "Copied result from GPU: #{System.convert_time_unit(get_result_end - get
 
 File.mkdir_p!("benchmarks/data/output/bfs")
 Enum.with_index(result)
-  |> Enum.reduce("", fn(r,string) -> string <> "#{elem(r,1)}) cost:#{trunc(elem(r,0))}\n" end)
+  |> Enum.reduce("", fn r, string -> string <> "#{elem(r,1)}) cost:#{trunc(elem(r,0))}\n" end)
   |> (&File.write("benchmarks/data/output/bfs/bfs_output.txt", &1)).()
 
 
