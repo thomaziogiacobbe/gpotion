@@ -1,5 +1,4 @@
 defmodule BFS_seq do
-  require IEx
   def function1(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes) do
     mask_true = Stream.with_index(graph_mask)
     |> Stream.filter(fn {x, _} -> x == true end)
