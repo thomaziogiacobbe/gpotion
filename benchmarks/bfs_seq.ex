@@ -1,4 +1,5 @@
 defmodule BFS_seq do
+  require IEx
   def function1(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes) do
     mask_true = Stream.with_index(graph_mask)
     |> Stream.filter(fn {x, _} -> x == true end)
@@ -15,23 +16,25 @@ defmodule BFS_seq do
     |> Stream.filter(fn {x, _} -> x == true end)
     |> Enum.map(fn {_, i} -> i end)
 
-    verify_graph(graph_mask, updating_graph_mask, graph_visited, over, update_true)
+    IEx.pry()
+
+    verify_graph(update_true, graph_mask, updating_graph_mask, graph_visited, over)
   end
 
-  defp verify_graph(graph_mask, updating_graph_mask, graph_visited, over, [index, others]) do
+  defp verify_graph([index, others], graph_mask, updating_graph_mask, graph_visited, over) do
     graph_mask = Enum.replace_at(graph_mask, index, true)
     graph_visited = Enum.replace_at(graph_visited, index, true)
     over = true
     updating_graph_mask = Enum.replace_at(updating_graph_mask, index, true)
-    verify_graph(graph_mask, updating_graph_mask, graph_visited, over, others)
+    verify_graph(others, graph_mask, updating_graph_mask, graph_visited, over)
   end
 
-  defp verify_graph(graph_mask, updating_graph_mask, graph_visited, over, []) do
+  defp verify_graph([], graph_mask, updating_graph_mask, graph_visited, over) do
     {graph_mask, updating_graph_mask, graph_visited, over}
   end
 
   defp for_each_node([node | others], graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes) do
-    calculate_node(node, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes, elem(node, 0))
+    {cost, updating_graph_mask} = calculate_node(node, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes, elem(node, 0))
     for_each_node(others, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes)
   end
 
@@ -61,7 +64,7 @@ defmodule BFS_seq do
 
   defp iterate(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes, over, iter) when over == true do
     {cost, updating_graph_mask} = function1(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes)
-    {graph_mask, updating_graph_mask, graph_visited, over} = function2(graph_mask, updating_graph_mask, graph_visited, over, no_of_nodes)
+    {graph_mask, updating_graph_mask, graph_visited, over} = function2(graph_mask, updating_graph_mask, graph_visited, false, no_of_nodes)
     iterate(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes, over, iter + 1)
   end
 
@@ -103,4 +106,7 @@ input_read_end = System.monotonic_time()
 IO.puts "Input read time: #{System.convert_time_unit(input_read_end - input_read_start, :native, :millisecond)}ms"
 
 {i, c} = BFS_seq.iterate(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes)
-IO.puts "#{i}: #{c}"
+IO.puts "#{i}"
+Stream.with_index(c)
+|> Stream.each(&IO.inspect/1)
+|> Stream.run
