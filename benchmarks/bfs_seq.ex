@@ -15,16 +15,14 @@ defmodule BFS_seq do
     |> Stream.filter(fn {x, _} -> x == true end)
     |> Enum.map(fn {_, i} -> i end)
 
-    IEx.pry()
-
     verify_graph(update_true, graph_mask, updating_graph_mask, graph_visited, over)
   end
 
-  defp verify_graph([index, others], graph_mask, updating_graph_mask, graph_visited, over) do
-    graph_mask = Enum.replace_at(graph_mask, index, true)
-    graph_visited = Enum.replace_at(graph_visited, index, true)
+  defp verify_graph([index | others], graph_mask, updating_graph_mask, graph_visited, over) do
+    graph_mask = List.replace_at(graph_mask, index, true)
+    graph_visited = List.replace_at(graph_visited, index, true)
     over = true
-    updating_graph_mask = Enum.replace_at(updating_graph_mask, index, true)
+    updating_graph_mask = List.replace_at(updating_graph_mask, index, true)
     verify_graph(others, graph_mask, updating_graph_mask, graph_visited, over)
   end
 
