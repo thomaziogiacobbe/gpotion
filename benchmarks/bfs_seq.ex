@@ -22,7 +22,7 @@ defmodule BFS_seq do
     graph_mask = List.replace_at(graph_mask, index, true)
     graph_visited = List.replace_at(graph_visited, index, true)
     over = true
-    updating_graph_mask = List.replace_at(updating_graph_mask, index, true)
+    updating_graph_mask = List.replace_at(updating_graph_mask, index, false)
     verify_graph(others, graph_mask, updating_graph_mask, graph_visited, over)
   end
 
@@ -102,8 +102,15 @@ cost = List.duplicate(-1, no_of_nodes) |> List.replace_at(0, 0)
 input_read_end = System.monotonic_time()
 IO.puts "Input read time: #{System.convert_time_unit(input_read_end - input_read_start, :native, :millisecond)}ms"
 
-{i, c} = BFS_seq.iterate(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes)
-IO.puts "#{i}"
-Stream.with_index(c)
-|> Stream.each(&IO.inspect/1)
-|> Stream.run
+iteration_time_start = System.monotonic_time()
+{iter, result} = BFS_seq.iterate(node_list, graph_edges, graph_mask, updating_graph_mask, graph_visited, cost, no_of_nodes)
+iteration_time_end = System.monotonic_time()
+
+IO.puts "Sequential execution time: #{System.convert_time_unit(iteration_time_end - iteration_time_start, :native, :millisecond)}ms"
+
+File.mkdir_p!("benchmarks/data/output/bfs")
+Enum.with_index(result)
+  |> Enum.reduce("", fn r, string -> string <> "#{elem(r,1)}) cost:#{trunc(elem(r,0))}\n" end)
+  |> (&File.write("benchmarks/data/output/bfs/bfs_seq_output.txt", &1)).()
+
+IO.puts "Iterations: #{iter}"
