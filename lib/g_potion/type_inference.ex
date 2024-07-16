@@ -1,4 +1,30 @@
 defmodule GPotion.TypeInference do
+  def type_check(map,body) do
+    types = infer_types(map,body)
+    notinfer = not_infered(Map.to_list(types))
+    if(length(notinfer)>0) do
+      IO.puts "Not infered:"
+      IO.inspect notinfer
+      IO.puts "Second pass:"
+      types2 = infer_types(types,body)
+      notinfer2 = not_infered(Map.to_list(types2))
+      if (length(notinfer)==length(notinfer2)) do
+        IO.inspect notinfer2
+        raise "Could not find types! Please use type annotations of the form: var x float, where x is an identifier"
+      else
+        type_check(types2,body)
+      end
+    else
+      types
+    end
+  end
+  defp not_infered([]), do: []
+  defp not_infered([h|t]) do
+    case h do
+      {v, :none}  -> [{v, :none} |not_infered(t) ]
+      {_,_}       -> not_infered(t)
+    end
+  end
   defmacro tinf(header, do: body) do
    {_fname, _, para} = header
    map = para
@@ -105,8 +131,16 @@ defmodule GPotion.TypeInference do
                 map
                 |> Map.put(var,type)
           {:return,_,[arg]} ->
-            type = find_type_exp(map,arg)
-            Map.put(map,:return,type)
+            inf_type = find_type_exp(map,arg)
+            #IO.inspect "return #{type}"
+            case inf_type do
+              :none -> map
+              _     -> current_type = Map.get(map,:return)
+                       case current_type do
+                            :none -> Map.put(map,:return,inf_type)
+                            _     -> if inf_type == current_type do map else raise "Found two return types for function #{current_type} and #{inf_type}"end
+                       end
+            end
 
           {_fun, _, args} when is_list(args)->
             Enum.reduce(args,map, fn v,acc -> infer_type_exp(acc,v) end)
